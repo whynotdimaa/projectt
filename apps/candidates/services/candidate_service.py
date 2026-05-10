@@ -87,13 +87,15 @@ class CandidateService:
             to_status=new_status,
             changed_by_id=changed_by_id,
         )
-        # Асинхронне сповіщення кандидата (Celery + Strategy pattern).
-        # Імпорт всередині методу — щоб уникнути циклу залежностей між apps.
-        from apps.notifications.tasks import notify_candidate_status_changed
-        notify_candidate_status_changed.delay(
+        # Observer pattern: публікуємо подію. Хто слухає — не наша відповідальність.
+        from ..signals import candidate_status_changed  # local import to avoid cycle
+        candidate_status_changed.send(
+            sender=self.__class__,
+            candidate_id=candidate_id,
             candidate_email=updated.email,
             candidate_name=f"{updated.first_name} {updated.last_name}",
             from_status=current.status,
             to_status=new_status,
+            changed_by_id=changed_by_id,
         )
         return updated

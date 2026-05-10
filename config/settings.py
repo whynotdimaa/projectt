@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "apps.vacancies",
     "apps.interviews",
     "apps.notifications",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [
