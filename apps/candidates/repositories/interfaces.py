@@ -30,4 +30,13 @@ class ICandidateRepository(ABC):
     def update_status(self, candidate_id: int, new_status: str) -> CandidateDTO: ...
 
     @abstractmethod
+    def add_status_history(
+        self,
+        candidate_id: int,
+        from_status: str,
+        to_status: str,
+        changed_by_id: int | None,
+    ) -> None: ...
+
+    @abstractmethod
     def delete(self, candidate_id: int) -> None: ...

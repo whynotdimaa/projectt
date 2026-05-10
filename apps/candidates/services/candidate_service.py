@@ -59,7 +59,12 @@ class CandidateService:
         self._repo.delete(candidate_id)
 
     # ---------- status transitions ----------
-    def change_status(self, candidate_id: int, new_status: str) -> CandidateDTO:
+    def change_status(
+        self,
+        candidate_id: int,
+        new_status: str,
+        changed_by_id: int | None = None,
+    ) -> CandidateDTO:
         if new_status not in CandidateStatus.values:
             raise ValidationError(f"Unknown status: {new_status}")
 
@@ -75,6 +80,20 @@ class CandidateService:
                 f"Transition {current.status} -> {new_status} is not allowed"
             )
 
-        # У Кроці 5 тут з'явиться запис у StatusHistory.
-        # У Кроці 6/7 — публікація події (Celery / signal).
-        return self._repo.update_status(candidate_id, new_status)
+        updated = self._repo.update_status(candidate_id, new_status)
+        self._repo.add_status_history(
+            candidate_id=candidate_id,
+            from_status=current.status,
+            to_status=new_status,
+            changed_by_id=changed_by_id,
+        )
+        # Асинхронне сповіщення кандидата (Celery + Strategy pattern).
+        # Імпорт всередині методу — щоб уникнути циклу залежностей між apps.
+        from apps.notifications.tasks import notify_candidate_status_changed
+        notify_candidate_status_changed.delay(
+            candidate_email=updated.email,
+            candidate_name=f"{updated.first_name} {updated.last_name}",
+            from_status=current.status,
+            to_status=new_status,
+        )
+        return updated

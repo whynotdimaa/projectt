@@ -25,6 +25,9 @@ INSTALLED_APPS = [
     # local apps
     "apps.candidates",
     "apps.users",
+    "apps.vacancies",
+    "apps.interviews",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -123,3 +126,30 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+# --- Celery ---
+# Якщо CELERY_TASK_ALWAYS_EAGER=True — задачі виконуються синхронно у тому ж процесі
+# (зручно для розробки/тестів, не потребує Redis).
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default="redis://localhost:6379/1")
+CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=True, cast=bool)
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+
+# Канали нотифікацій за замовчуванням (можна перевизначити у .env)
+NOTIFICATION_CHANNELS = config(
+    "NOTIFICATION_CHANNELS",
+    default="email",
+    cast=Csv(),
+)
+
+# --- Email ---
+# Console backend: листи друкуються у stdout (для розробки).
+# У production — налаштувати SMTP backend.
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend",
+)

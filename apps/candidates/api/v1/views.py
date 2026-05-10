@@ -88,6 +88,8 @@ class CandidateStatusView(_ServiceMixin, APIView):
         serializer = CandidateStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         updated = self.get_service().change_status(
-            candidate_id, serializer.validated_data["status"]
+            candidate_id,
+            serializer.validated_data["status"],
+            changed_by_id=request.user.id,
         )
         return Response(CandidateReadSerializer(updated).data)

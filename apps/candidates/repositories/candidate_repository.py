@@ -16,7 +16,7 @@ from ..dto import (
     CandidateFilterDTO,
     CandidateUpdateDTO,
 )
-from ..models import Candidate
+from ..models import Candidate, StatusHistory
 from .interfaces import ICandidateRepository
 
 
@@ -95,3 +95,17 @@ class CandidateRepository(ICandidateRepository):
         deleted, _ = Candidate.objects.filter(pk=candidate_id).delete()
         if not deleted:
             raise NotFoundError(f"Candidate {candidate_id} not found")
+
+    def add_status_history(
+        self,
+        candidate_id: int,
+        from_status: str,
+        to_status: str,
+        changed_by_id: int | None,
+    ) -> None:
+        StatusHistory.objects.create(
+            candidate_id=candidate_id,
+            from_status=from_status,
+            to_status=to_status,
+            changed_by_id=changed_by_id,
+        )
