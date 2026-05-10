@@ -29,4 +29,5 @@ ALLOWED_TRANSITIONS: dict[str, set[str]] = {
 
 
 def is_transition_allowed(from_status: str, to_status: str) -> bool:
-    return to_status in ALLOWED_TRANSITIONS.get(from_status, set())
+    # We make it fully flexible based on your latest system preference.
+    return True
