@@ -1,0 +1,153 @@
+# HR Candidate Evaluation System — Architecture
+
+## System Overview
+
+A Django REST API for managing the HR hiring funnel: candidates move through
+statuses (NEW → SCREENING → INTERVIEW → OFFER → HIRED / REJECTED).
+
+---
+
+## High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     HTTP Clients                        │
+│              (React Frontend / API consumers)           │
+└─────────────────────┬───────────────────────────────────┘
+                      │  JWT Bearer Token
+┌─────────────────────▼───────────────────────────────────┐
+│                  DRF API Layer (v1)                     │
+│   Views → Serializers → Permission Classes              │
+│   /api/v1/candidates/, /api/v1/vacancies/               │
+│   /api/v1/interviews/, /api/v1/analytics/               │
+│   /api/v1/auth/  (login, refresh, me)                   │
+└─────────────────────┬───────────────────────────────────┘
+                      │  DTOs
+┌─────────────────────▼───────────────────────────────────┐
+│                 Service Layer                           │
+│   CandidateService, InterviewService                    │
+│   VacancyService, AnalyticsService                      │
+│   (Pure Python, no ORM, no HTTP)                        │
+└─────────────────────┬───────────────────────────────────┘
+                      │  Repository Interfaces
+┌─────────────────────▼───────────────────────────────────┐
+│              Repository Layer                           │
+│   ICandidateRepository  ← DjangoCandidateRepository     │
+│   IInterviewRepository  ← DjangoInterviewRepository     │
+│   IVacancyRepository    ← DjangoVacancyRepository       │
+└─────────────────────┬───────────────────────────────────┘
+                      │  Django ORM
+┌─────────────────────▼───────────────────────────────────┐
+│               PostgreSQL 16                             │
+└─────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────┐
+│               Async Task Layer                        │
+│   Celery + Redis broker                               │
+│   Notification tasks (email on status change)         │
+└───────────────────────────────────────────────────────┘
+```
+
+---
+
+## Domain Model
+
+### Entities
+
+| Entity        | Key Fields                                                  |
+|---------------|-------------------------------------------------------------|
+| `User`        | email, role (ADMIN/RECRUITER/INTERVIEWER), first/last name  |
+| `Candidate`   | name, email, phone, resume_url, desired_position, status    |
+| `Vacancy`     | title, department, description, recruiter_id, is_open       |
+| `Interview`   | candidate_id, recruiter_id, interviewer_id, scheduled_at, score, comment |
+| `CandidateStatusHistory` | candidate_id, from_status, to_status, changed_by_id, changed_at |
+
+### Status Machine
+
+```
+NEW ──→ SCREENING ──→ INTERVIEW ──→ OFFER ──→ HIRED
+ │           │              │          │
+ └───────────┴──────────────┴──────────┴──→ REJECTED (terminal)
+                                              HIRED (terminal)
+```
+
+Transitions are enforced by `ALLOWED_TRANSITIONS` dict in `apps/candidates/enums.py`.
+Every transition is recorded in `CandidateStatusHistory`.
+
+---
+
+## Module Breakdown
+
+### `apps/candidates/`
+- Core domain: candidate CRUD, status machine, status history
+- Signals: `candidate_status_changed` → triggers Celery notification task
+
+### `apps/vacancies/`
+- Vacancy CRUD + close action
+- Recruiter is automatically set from JWT token in the view
+
+### `apps/interviews/`
+- Schedule interview (recruiter only)
+- Evaluate interview with score 1–10 (interviewer only)
+
+### `apps/analytics/`
+- Read-only analytics endpoints:
+  - `GET /funnel/` — count by status with conversion %
+  - `GET /time-to-hire/` — avg seconds from NEW to HIRED
+  - `GET /candidates-by-status/` — dict of all statuses with counts
+
+### `apps/users/`
+- Custom User model (email-based auth, no username)
+- JWT login/refresh via simplejwt
+- `GET /me/` endpoint
+
+### `apps/notifications/`
+- Celery tasks for sending emails on candidate status changes
+- Channel system: configurable via `NOTIFICATION_CHANNELS` setting
+
+### `core/`
+- `exceptions.py`: `BaseAppError`, `NotFoundError`, `ConflictError`, `ValidationError`
+- `permissions.py`: `IsRecruiter`, `IsInterviewer`, `IsAdmin`, `IsRecruiterOrAdmin`
+- `pagination.py`: Standard page/limit pagination
+
+---
+
+## Dependency Injection Pattern
+
+Services receive their repository via constructor injection:
+
+```python
+# In views.py
+service = CandidateService(repo=DjangoCandidateRepository())
+
+# In tests/conftest.py (unit)
+service = CandidateService(repo=InMemoryCandidateRepo())
+```
+
+This enables unit testing without a database.
+
+---
+
+## Configuration
+
+- `config/settings.py` — single settings file, reads from env vars
+- `config/urls.py` — root URL router, includes each app's `api/v1/urls.py`
+- `config/celery.py` — Celery app configuration
+- Environment variables: `SECRET_KEY`, `DATABASE_URL`, `CELERY_BROKER_URL`, `ALLOWED_HOSTS`
+
+---
+
+## CI/CD
+
+- **GitHub Actions** (`.github/workflows/ci.yml`):
+  1. Spin up Postgres 16 + Redis 7
+  2. Run Django system checks
+  3. Run migrations
+  4. Run pytest with coverage
+  5. SonarCloud scan
+  6. Post coverage comment on PRs
+
+- **SonarCloud** (`sonar-project.properties`):
+  - Sources: `apps/`, `core/`
+  - Coverage from `coverage.xml`
+  - Excludes migrations, admin, apps.py

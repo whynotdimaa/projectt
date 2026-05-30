@@ -29,5 +29,8 @@ ALLOWED_TRANSITIONS: dict[str, set[str]] = {
 
 
 def is_transition_allowed(from_status: str, to_status: str) -> bool:
-    # We make it fully flexible based on your latest system preference.
-    return True
+    """Return True only if the transition from_status → to_status is in ALLOWED_TRANSITIONS."""
+    allowed = ALLOWED_TRANSITIONS.get(from_status)
+    if allowed is None:
+        return False  # unknown from_status
+    return to_status in allowed

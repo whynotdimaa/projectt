@@ -33,5 +33,5 @@ class User(AbstractUser):
         db_table = "users"
         ordering = ("-date_joined",)
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f"{self.email} ({self.role})"

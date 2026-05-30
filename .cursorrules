@@ -1,0 +1,55 @@
+# HR Candidate Evaluation System — Global AI Rules
+
+## Role
+You are an AI assistant working on the HR Candidate Evaluation System.
+This is a Django REST Framework backend following Clean Architecture with strict layering.
+
+## MANDATORY: Before writing ANY code
+1. Check `.cursor/architecture` for system structure
+2. Check `.cursor/testing_strategy` for test patterns
+3. Follow `.cursor/rules` for code standards
+
+## Hard Rules (NEVER violate)
+
+### Architecture
+- ❌ NEVER call Django ORM (`Model.objects.*`) from service layer
+- ❌ NEVER add business logic to views or serializers
+- ❌ NEVER use raw SQL
+- ❌ NEVER import Django models into services (inject repo via constructor)
+- ✅ Services depend ONLY on repository interfaces (`ICandidateRepository`)
+- ✅ Constructor injection: `CandidateService(repo=DjangoCandidateRepository())`
+
+### Testing (TDD approach)
+- ❌ NEVER write production code without a corresponding test
+- ❌ NEVER use `@pytest.mark.django_db` in unit tests
+- ✅ Unit tests: use `InMemoryXxxRepo` from `tests/conftest.py`
+- ✅ Integration tests: use `recruiter_client` / `interviewer_client` fixtures
+- ✅ Every new endpoint needs: auth test + happy path + error cases
+
+### Interfaces
+- ❌ NEVER implement a repository without first defining its interface in `interfaces.py`
+- ✅ Every repo must implement the interface exactly
+- ✅ InMemory repo for tests must mirror the Django repo's behavior
+
+### Code Quality
+- ❌ NEVER use `print()` — use `logging`
+- ❌ NEVER hardcode secrets or URLs — use `django.conf.settings`
+- ❌ NEVER leave `TODO` comments in production code without a GitHub issue reference
+- ✅ Type annotations on ALL public functions
+- ✅ Max line length: 100 chars
+
+## GoF Patterns in use (do not duplicate)
+- **Repository**: `apps/*/repositories/`
+- **Strategy**: `apps/notifications/strategies/`
+- **Factory Method**: `NotificationStrategyFactory`
+- **Observer**: `candidate_status_changed` signal
+
+## Exception hierarchy (use ONLY these)
+```python
+from core.exceptions import NotFoundError, ConflictError, ValidationError
+```
+
+## Status machine (MUST enforce)
+```python
+from apps.candidates.enums import ALLOWED_TRANSITIONS, is_transition_allowed
+```

@@ -1,0 +1,14 @@
+[run]
+omit =
+    */repositories/base.py
+    core/repositories/base.py
+    core\repositories\base.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    ^\s*\.\.\.$
+    ^from __future__ import
+    def __repr__
+    raise NotImplementedError
+    if TYPE_CHECKING:

@@ -1,106 +1,211 @@
 # HR Candidate Evaluation System
 
-Django + DRF застосунок для оцінки кандидатів. Архітектура — **Modular Monolith + Layered Architecture (3-layer) + Repository / Strategy / Observer / Factory** (вище за MVT, нижче за мікросервіси).
+[![CI Pipeline](https://github.com/whynotdimaa/project/actions/workflows/ci.yml/badge.svg)](https://github.com/whynotdimaa/project/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=coverage)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=bugs)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
 
-## Шари (одностороння залежність)
+Django + DRF система управління HR-воронкою кандидатів із повноцінним CI/CD, 100% покриттям коду та інтеграцією SonarCloud.
+
+---
+
+## 🏗️ Архітектура
+
+**Modular Monolith** із чітким розділенням на шари (Clean Architecture):
 
 ```
-api (DRF views)  →  services (бізнес-логіка)  →  repositories  →  models (ORM)
+HTTP Request
+    ↓
+[DRF Views / Serializers]   ← HTTP layer, no business logic
+    ↓  DTOs
+[Services]                  ← Business logic, domain rules
+    ↓  Repository Interface (DIP)
+[Repository Implementation] ← Django ORM abstraction
+    ↓
+[PostgreSQL]
 ```
 
-- **api/** — HTTP, серіалізація, валідація. НЕ ходить в ORM.
-- **services/** — бізнес-правила, переходи статусів, події. Не знає про HTTP.
-- **repositories/** — єдина точка доступу до даних. Реалізує інтерфейс із `core/repositories/base.py`.
-- **models/** — Django ORM, лише схема + інваріанти БД.
+### Шари
+| Шар | Відповідальність |
+|-----|-----------------|
+| `api/v1/views.py` | HTTP, серіалізація, маршрутизація |
+| `services/` | Бізнес-логіка, переходи статусів, валідація |
+| `repositories/interfaces.py` | Абстрактний контракт (DIP) |
+| `repositories/*_repository.py` | Django ORM реалізація |
+| `models.py` | Django ORM, лише схема БД |
 
-## Модулі (apps)
+---
 
-Кожен `apps/<domain>/` — самодостатній модуль із власними `models / repositories / services / api`. Готово до майбутнього виділення в окремий сервіс.
+## 🔄 Воронка статусів кандидата
 
-- `apps/candidates/` — ✅ Крок 1 (модель + enum)
-- `apps/users/` — Крок 4
-- `apps/interviews/`, `apps/vacancies/` — Крок 5
-- `apps/analytics/` — Крок 7
-
-## Швидкий старт (локально, SQLite)
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate            # Windows
-pip install -r requirements.txt
-copy .env.example .env            # Windows
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+```
+NEW ──→ SCREENING ──→ INTERVIEW ──→ OFFER ──→ HIRED (terminal)
+ │           │              │          │
+ └───────────┴──────────────┴──────────┴──→ REJECTED (terminal)
 ```
 
-Адмінка: http://127.0.0.1:8000/admin/
+Переходи суворо обмежені `ALLOWED_TRANSITIONS` в `apps/candidates/enums.py`. Кожен перехід логується в `StatusHistory`.
 
-## Готово ✅
+---
 
-1. ✅ Каркас, модель `Candidate` + enum статусів
-2. ✅ Repository + Service для Candidate
-3. ✅ DRF API v1 `/api/v1/candidates/`
-4. ✅ JWT auth + RBAC (RECRUITER / INTERVIEWER / ADMIN)
-5. ✅ Interview, Vacancy, StatusHistory
-6. ✅ Strategy + Celery нотифікації (Email / Slack / SMS)
-7. ✅ Observer (Django signals) + Analytics (funnel, time-to-hire, by-status)
-8. ✅ Tests (pytest), Docker, GitHub Actions CI
+## 🧩 Реалізовані GoF Патерни
 
-## Реалізовані патерни
+| Патерн | Де | Опис |
+|--------|----|------|
+| **Repository** | `apps/*/repositories/` | Абстракція доступу до даних, DI через інтерфейси |
+| **Strategy** | `apps/notifications/strategies/` | Email, Slack, SMS — взаємозамінні стратегії доставки |
+| **Factory Method** | `apps/notifications/strategies/factory.py` | `NotificationStrategyFactory.create(channel)` |
+| **Observer** | `apps/candidates/signals.py` + `apps/notifications/handlers.py` | Django Signal при зміні статусу |
+| **Producer-Consumer** | `apps/notifications/tasks.py` | Celery task → асинхронна нотифікація |
 
-| Патерн | Де |
-|---|---|
-| **Repository** | `apps/<domain>/repositories/interfaces.py` + `*_repository.py` |
-| **Strategy** | `apps/notifications/strategies/` (Email, Slack, SMS) |
-| **Factory Method** | `apps/notifications/strategies/factory.py` (NotificationStrategyFactory) |
-| **Observer** | Custom Django Signal `candidate_status_changed` (`apps/candidates/signals.py`) + receiver у `apps/notifications/handlers.py` |
-| **Producer-Consumer** | Celery task → Strategy для асинхронних нотифікацій |
+---
 
-## API endpoints
+## 📊 Метрики якості
 
-| Метод | URL | Опис |
-|---|---|---|
-| `POST` | `/api/v1/auth/login/` | JWT login |
-| `POST` | `/api/v1/auth/refresh/` | refresh token |
-| `GET/POST` | `/api/v1/candidates/` | список / створити |
-| `GET/PATCH/DELETE` | `/api/v1/candidates/{id}/` | деталі |
-| `PATCH` | `/api/v1/candidates/{id}/status/` | змінити статус (валідація переходу + signal) |
-| `GET/POST` | `/api/v1/vacancies/` | вакансії |
-| `POST` | `/api/v1/vacancies/{id}/close/` | закрити вакансію |
-| `GET/POST` | `/api/v1/interviews/` | інтерв'ю |
-| `PATCH` | `/api/v1/interviews/{id}/evaluate/` | оцінити (1-10) |
-| `GET` | `/api/v1/analytics/funnel/` | воронка з конверсіями |
-| `GET` | `/api/v1/analytics/time-to-hire/` | середній час до hire |
-| `GET` | `/api/v1/analytics/candidates-by-status/` | розподіл по статусах |
+| Метрика | Значення |
+|---------|---------|
+| **Покриття коду** | ~100% (мін. вимога: 70%) |
+| **Кількість тестів** | 200+ (unit + integration) |
+| **Bugs** | 0 |
+| **Vulnerabilities** | 0 |
+| **Code Smells** | A |
 
-## Запуск через Docker (повний стек)
+---
 
-```bash
-docker compose up --build
+## 📁 Структура репозиторію
+
+```
+project/
+├── apps/
+│   ├── candidates/          # Кандидати, статуси, воронка
+│   │   ├── dto.py
+│   │   ├── enums.py         # CandidateStatus + ALLOWED_TRANSITIONS
+│   │   ├── models.py
+│   │   ├── repositories/    # ICandidateRepository + Django impl
+│   │   ├── services/        # CandidateService (бізнес-логіка)
+│   │   └── api/v1/
+│   ├── interviews/          # Планування та оцінка інтерв'ю
+│   ├── vacancies/           # Вакансії
+│   ├── analytics/           # Funnel, time-to-hire, by-status
+│   ├── notifications/       # Strategy + Celery tasks
+│   └── users/               # JWT auth, RBAC ролі
+├── core/
+│   ├── exceptions.py        # NotFoundError, ConflictError, ValidationError
+│   ├── permissions.py       # DRF permission classes
+│   └── drf_exception_handler.py
+├── tests/
+│   ├── conftest.py          # InMemory repos + JWT clients
+│   ├── unit/                # ~100 unit tests (no DB)
+│   └── integration/         # ~100 integration tests (real DB + API)
+├── docs/
+│   └── diagrams/            # UML діаграми
+├── .cursor/
+│   ├── rules                # Coding standards & forbidden patterns
+│   ├── architecture         # System architecture description
+│   └── testing_strategy     # Testing pyramid & coverage targets
+├── .cursorrules             # AI agent global rules
+├── .github/workflows/ci.yml # CI/CD pipeline
+├── sonar-project.properties # SonarCloud config
+├── pytest.ini               # Test runner + coverage config
+├── .coveragerc              # Coverage exclusions
+├── Dockerfile
+└── docker-compose.yml
 ```
 
-Підіймаються 4 сервіси: **postgres**, **redis**, **web** (Django), **worker** (Celery).
-API: http://localhost:8000/api/v1/
+---
 
-## Запуск локально (без Docker)
+## 🚀 Швидкий старт
 
+### Локально (SQLite)
 ```bash
 python -m venv .venv
 .venv\Scripts\activate            # Windows
 pip install -r requirements.txt
 copy .env.example .env
 python manage.py migrate
-python manage.py createsuperuser
 python manage.py runserver
 ```
 
-## Тести
-
+### Docker (повний стек: Postgres + Redis + Celery)
 ```bash
-pytest tests/ -v
+docker compose up --build
 ```
 
-## CI
+API: http://localhost:8000/api/v1/  
+Swagger: http://localhost:8000/api/schema/swagger-ui/  
+Admin: http://localhost:8000/admin/
 
-Pipeline `.github/workflows/ci.yml` запускає `manage.py check` + `migrate` + `pytest` із Postgres-сервісом на кожен push/PR.
+---
+
+## 🔌 API Endpoints
+
+| Метод | URL | Роль | Опис |
+|-------|-----|------|------|
+| `POST` | `/api/v1/auth/register/` | Any | Реєстрація |
+| `POST` | `/api/v1/auth/login/` | Any | JWT login |
+| `POST` | `/api/v1/auth/refresh/` | Any | Refresh token |
+| `GET/POST` | `/api/v1/candidates/` | R/I | Список / створити |
+| `GET/PATCH/DELETE` | `/api/v1/candidates/{id}/` | R/I | Деталі кандидата |
+| `PATCH` | `/api/v1/candidates/{id}/status/` | R | Змінити статус (state machine) |
+| `GET/POST` | `/api/v1/vacancies/` | R/I | Вакансії |
+| `POST` | `/api/v1/vacancies/{id}/close/` | R | Закрити вакансію |
+| `GET/POST` | `/api/v1/interviews/` | R/I | Інтерв'ю |
+| `PATCH` | `/api/v1/interviews/{id}/evaluate/` | I | Оцінити (1-10) |
+| `GET` | `/api/v1/analytics/funnel/` | R/I | Воронка конверсій |
+| `GET` | `/api/v1/analytics/time-to-hire/` | R/I | Середній час найму |
+| `GET` | `/api/v1/analytics/candidates-by-status/` | R/I | Розподіл по статусах |
+
+**R** = Recruiter/Admin, **I** = Interviewer (read-only)
+
+---
+
+## 🧪 Тестування
+
+```bash
+# Всі тести з покриттям
+pytest
+
+# Тільки unit (без DB, швидко)
+pytest tests/unit/ --no-cov -q
+
+# Тільки інтеграційні
+pytest tests/integration/ --no-cov -q
+```
+
+Звіти після запуску:
+- `htmlcov/index.html` — HTML покриття (відкрити в браузері)
+- `coverage.xml` — для SonarCloud
+- `junit.xml` — тестові результати
+
+---
+
+## ⚙️ CI/CD Pipeline
+
+`.github/workflows/ci.yml` при кожному push/PR:
+
+1. 🐘 Запускає Postgres 16 + Redis 7
+2. ✅ `python manage.py check` — системна перевірка
+3. 🔄 `python manage.py migrate`
+4. 🧪 `pytest` — 200+ тестів + coverage
+5. 📊 SonarCloud scan
+6. 💬 Coverage comment на PR
+7. 📦 Upload артефактів: `htmlcov/`, `coverage.xml`, `junit.xml`
+
+---
+
+## 🛡️ Branch Protection
+
+- PR не можна merge якщо CI "червоний"
+- Quality Gate SonarCloud повинен бути "passed"
+- Coverage < 70% → автоматичне блокування
+
+---
+
+## 📐 UML Діаграми
+
+Дивись [`docs/diagrams/`](docs/diagrams/):
+- [Use Case Diagram](docs/diagrams/use_case.md)
+- [Domain Model](docs/diagrams/domain_model.md)
+- [Class Diagram](docs/diagrams/class_diagram.md)

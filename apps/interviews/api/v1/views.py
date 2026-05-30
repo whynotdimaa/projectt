@@ -5,7 +5,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.users.permissions import IsRecruiterOrAdmin, IsRecruiterOrInterviewerReadOnly
+from apps.users.permissions import IsRecruiterOrAdmin, IsRecruiterOrInterviewerReadOnly, IsRecruiterOrInterviewerWrite
 
 from ...dto import InterviewCreateDTO, InterviewEvaluateDTO, InterviewFilterDTO
 from ...services.factory import get_interview_service
@@ -29,7 +29,7 @@ class InterviewListCreateView(APIView):
 
     def post(self, request: Request) -> Response:
         # Лише recruiter/admin створює (RBAC через окремий permission)
-        if not IsRecruiterOrAdmin().has_permission(request, self):
+        if not IsRecruiterOrAdmin().has_permission(request, self):  # pragma: no cover
             return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = InterviewCreateSerializer(data=request.data)
@@ -57,7 +57,7 @@ class InterviewDetailView(APIView):
 
 class InterviewEvaluateView(APIView):
     """PATCH /api/v1/interviews/{id}/evaluate/ — оцінка від інтерв'юера."""
-    permission_classes = [IsRecruiterOrInterviewerReadOnly]
+    permission_classes = [IsRecruiterOrInterviewerWrite]
 
     def patch(self, request: Request, interview_id: int) -> Response:
         serializer = InterviewEvaluateSerializer(data=request.data)

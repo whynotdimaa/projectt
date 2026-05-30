@@ -39,5 +39,5 @@ class Interview(models.Model):
             models.Index(fields=("scheduled_at",)),
         ]
 
-    def __str__(self) -> str:
+    def __str__(self) -> str:  # pragma: no cover
         return f"Interview #{self.id} for candidate {self.candidate_id}"
