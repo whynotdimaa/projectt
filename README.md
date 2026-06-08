@@ -1,6 +1,6 @@
 # HR Candidate Evaluation System
 
-[![CI Pipeline](https://github.com/whynotdimaa/projectt/actions/workflows/ci.yml/badge.svg)](https://github.com/whynotdimaa/projectt/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/whynotdimaa/projectt/actions/workflows/ci-pipeline.yml/badge.svg)](https://github.com/whynotdimaa/projectt/actions/workflows/ci-pipeline.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=coverage)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=bugs)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
@@ -102,11 +102,12 @@ project/
 ├── docs/
 │   └── diagrams/            # UML діаграми
 ├── .cursor/
-│   ├── rules                # Coding standards & forbidden patterns
-│   ├── architecture         # System architecture description
-│   └── testing_strategy     # Testing pyramid & coverage targets
+│   └── rules/
+│       ├── rules.md         # Coding standards & forbidden patterns
+│       ├── architecture.md  # System architecture description
+│       └── testing.md       # Testing pyramid & coverage targets
 ├── .cursorrules             # AI agent global rules
-├── .github/workflows/ci.yml # CI/CD pipeline
+├── .github/workflows/ci-pipeline.yml # CI/CD pipeline
 ├── sonar-project.properties # SonarCloud config
 ├── pytest.ini               # Test runner + coverage config
 ├── .coveragerc              # Coverage exclusions
@@ -183,7 +184,7 @@ pytest tests/integration/ --no-cov -q
 
 ## ⚙️ CI/CD Pipeline
 
-`.github/workflows/ci.yml` при кожному push/PR:
+`.github/workflows/ci-pipeline.yml` при кожному push/PR:
 
 1. 🐘 Запускає Postgres 16 + Redis 7
 2. ✅ `python manage.py check` — системна перевірка

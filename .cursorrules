@@ -5,9 +5,9 @@ You are an AI assistant working on the HR Candidate Evaluation System.
 This is a Django REST Framework backend following Clean Architecture with strict layering.
 
 ## MANDATORY: Before writing ANY code
-1. Check `.cursor/architecture` for system structure
-2. Check `.cursor/testing_strategy` for test patterns
-3. Follow `.cursor/rules` for code standards
+1. Check `.cursor/rules/architecture.md` for system structure
+2. Check `.cursor/rules/testing.md` for test patterns
+3. Follow `.cursor/rules/rules.md` for code standards
 
 ## Hard Rules (NEVER violate)
 

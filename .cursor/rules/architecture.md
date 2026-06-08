@@ -139,7 +139,7 @@ This enables unit testing without a database.
 
 ## CI/CD
 
-- **GitHub Actions** (`.github/workflows/ci.yml`):
+- **GitHub Actions** (`.github/workflows/ci-pipeline.yml`):
   1. Spin up Postgres 16 + Redis 7
   2. Run Django system checks
   3. Run migrations

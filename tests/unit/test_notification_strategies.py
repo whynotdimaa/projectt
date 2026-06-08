@@ -53,3 +53,47 @@ def test_service_isolates_failing_strategy():
     svc = NotificationService(strategies=[_BoomStrategy(), spy])
     svc.send(NotificationMessage("a@b.c", "s", "b"))
     assert len(spy.calls) == 1
+
+
+def test_service_for_channels():
+    """NotificationService.for_channels() creates strategies via factory."""
+    svc = NotificationService.for_channels(["email", "slack"])
+    assert len(svc._strategies) == 2
+    assert {s.name for s in svc._strategies} == {"email", "slack"}
+
+
+def test_email_strategy_send():
+    """EmailStrategy.send() calls Django send_mail with correct parameters."""
+    from unittest.mock import patch
+    from apps.notifications.strategies.email_strategy import EmailStrategy
+    
+    strategy = EmailStrategy(from_email="test@example.com")
+    msg = NotificationMessage("recipient@example.com", "Test Subject", "Test Body")
+    
+    with patch("apps.notifications.strategies.email_strategy.send_mail") as mock_send_mail:
+        strategy.send(msg)
+        mock_send_mail.assert_called_once_with(
+            subject="Test Subject",
+            message="Test Body",
+            from_email="test@example.com",
+            recipient_list=["recipient@example.com"],
+            fail_silently=False,
+        )
+
+
+def test_build_status_change_message():
+    """build_status_change_message() creates correct NotificationMessage."""
+    from apps.notifications.services.notification_service import build_status_change_message
+    
+    msg = build_status_change_message(
+        candidate_email="test@example.com",
+        candidate_name="John Doe",
+        from_status="NEW",
+        to_status="INTERVIEW"
+    )
+    
+    assert msg.recipient == "test@example.com"
+    assert msg.subject == "Your application status: INTERVIEW"
+    assert "John Doe" in msg.body
+    assert "NEW -> INTERVIEW" in msg.body
+    assert "HR Team" in msg.body

@@ -10,4 +10,3 @@ venv/
 .vscode/
 db.sqlite3
 *.log
-tests/
