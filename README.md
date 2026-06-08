@@ -1,11 +1,11 @@
 # HR Candidate Evaluation System
 
-[![CI Pipeline](https://github.com/whynotdimaa/project/actions/workflows/ci.yml/badge.svg)](https://github.com/whynotdimaa/project/actions/workflows/ci.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=coverage)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=bugs)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_project&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_project)
+[![CI Pipeline](https://github.com/whynotdimaa/projectt/actions/workflows/ci.yml/badge.svg)](https://github.com/whynotdimaa/projectt/actions/workflows/ci.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=coverage)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=bugs)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=whynotdimaa_projectt&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=whynotdimaa_projectt)
 
 Django + DRF система управління HR-воронкою кандидатів із повноцінним CI/CD, 100% покриттям коду та інтеграцією SonarCloud.
 
