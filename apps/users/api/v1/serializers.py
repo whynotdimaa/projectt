@@ -15,5 +15,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Використовуємо create_user() — безпечний спосіб, хешує пароль
-        # і уникає mass assignment вразливості
-        return User.objects.create_user(**validated_data)
+        # і уникає mass assignment вразливості.
+        # username = email: AbstractUser вимагає username явно; User.save()
+        # все одно синхронізує username з email.
+        email = validated_data.get("email", "")
+        return User.objects.create_user(username=email, **validated_data)
