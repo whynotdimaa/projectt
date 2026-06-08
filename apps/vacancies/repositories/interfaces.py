@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import Iterable
 
 from ..dto import VacancyCreateDTO, VacancyDTO, VacancyFilterDTO
 
 
 class IVacancyRepository(ABC):
     @abstractmethod
-    def get_by_id(self, vacancy_id: int) -> Optional[VacancyDTO]: ...
+    def get_by_id(self, vacancy_id: int) -> VacancyDTO | None: ...
 
     @abstractmethod
     def list(self, filters: VacancyFilterDTO) -> Iterable[VacancyDTO]: ...

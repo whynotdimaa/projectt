@@ -2,15 +2,16 @@
 Django settings — мінімальний каркас (Крок 1).
 Розширюватиметься у наступних кроках (JWT, Celery, CORS, тощо).
 """
+from datetime import timedelta
 from pathlib import Path
 
 from decouple import Csv, config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config("DJANGO_SECRET_KEY", default="dev-insecure-secret")
-DEBUG = config("DJANGO_DEBUG", default=True, cast=bool)
-ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="*", cast=Csv())
+SECRET_KEY = config("DJANGO_SECRET_KEY")
+DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
+ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -131,7 +132,6 @@ SPECTACULAR_SETTINGS = {
 }
 
 # --- JWT ---
-from datetime import timedelta
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
@@ -168,5 +168,10 @@ EMAIL_BACKEND = config(
 )
 
 # --- CORS ---
-CORS_ALLOW_ALL_ORIGINS = True  # For development convenience
+# Визначаємо дозволені origins через .env (для розробки: http://localhost:3000)
+CORS_ALLOWED_ORIGINS = config(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:3000,http://127.0.0.1:3000",
+    cast=Csv(),
+)
 CORS_ALLOW_CREDENTIALS = True

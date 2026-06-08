@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task(
     bind=True,
-    autoretry_for=(Exception,),
+    autoretry_for=(Exception,),  # noqa: BLE001 – intentional: retry on any transient failure
     retry_backoff=True,
     retry_kwargs={"max_retries": 3},
     ignore_result=True,

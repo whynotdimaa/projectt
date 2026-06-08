@@ -3,18 +3,17 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
-        fields = ("id", "email", "first_name", "last_name", "phone", "role", "password")
+        # role виключено: нові користувачі не можуть самостійно обирати роль
+        fields = ("id", "email", "first_name", "last_name", "phone", "password")
         read_only_fields = ("id",)
 
     def create(self, validated_data):
-        password = validated_data.pop("password")
-        user = User(**validated_data)
-        user.set_password(password)
-        # In models.py, username gets set to email automatically on save.
-        user.save()
-        return user
+        # Використовуємо create_user() — безпечний спосіб, хешує пароль
+        # і уникає mass assignment вразливості
+        return User.objects.create_user(**validated_data)

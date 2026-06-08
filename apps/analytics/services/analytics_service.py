@@ -7,7 +7,6 @@ Use Django ORM aggregates напряму (це read-model). Для аналіт�
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Optional
 
 from django.db.models import Count
 from django.utils import timezone
@@ -54,7 +53,7 @@ class AnalyticsService:
         reached[CandidateStatus.NEW] |= all_candidate_ids
 
         result = []
-        prev_count: Optional[int] = None
+        prev_count: int | None = None
         for status in self.FUNNEL_ORDER:
             count = len(reached[status])
             conversion = (count / prev_count * 100) if prev_count else None

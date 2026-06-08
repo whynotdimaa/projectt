@@ -6,7 +6,7 @@ Integration fixtures: real DB via @pytest.mark.django_db + DRF APIClient.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Iterable, Optional
+from typing import Iterable
 from unittest.mock import patch
 
 import pytest
@@ -56,10 +56,10 @@ class InMemoryCandidateRepo(ICandidateRepository):
         self._history: list[dict] = []
         self._next_id = 1
 
-    def get_by_id(self, candidate_id: int) -> Optional[CandidateDTO]:
+    def get_by_id(self, candidate_id: int) -> CandidateDTO | None:
         return self._store.get(candidate_id)
 
-    def get_by_email(self, email: str) -> Optional[CandidateDTO]:
+    def get_by_email(self, email: str) -> CandidateDTO | None:
         for c in self._store.values():
             if c.email.lower() == email.lower():
                 return c
@@ -135,7 +135,7 @@ class InMemoryInterviewRepo(IInterviewRepository):
         self._store: dict[int, InterviewDTO] = {}
         self._next_id = 1
 
-    def get_by_id(self, interview_id: int) -> Optional[InterviewDTO]:
+    def get_by_id(self, interview_id: int) -> InterviewDTO | None:
         return self._store.get(interview_id)
 
     def list(self, filters: InterviewFilterDTO) -> Iterable[InterviewDTO]:
@@ -182,7 +182,7 @@ class InMemoryVacancyRepo(IVacancyRepository):
         self._store: dict[int, VacancyDTO] = {}
         self._next_id = 1
 
-    def get_by_id(self, vacancy_id: int) -> Optional[VacancyDTO]:
+    def get_by_id(self, vacancy_id: int) -> VacancyDTO | None:
         return self._store.get(vacancy_id)
 
     def list(self, filters: VacancyFilterDTO) -> Iterable[VacancyDTO]:

@@ -126,7 +126,6 @@ class TestInterviewRepositoryBranches:
         from apps.candidates.models import Candidate
         c = Candidate.objects.create(first_name="F", last_name="L", email="filter_cand@t.com")
         repo = InterviewRepository()
-        from apps.interviews.dto import InterviewCreateDTO
         repo.add(InterviewCreateDTO(
             candidate_id=c.id, recruiter_id=recruiter_user.id,
             interviewer_id=interviewer_user.id,

@@ -7,7 +7,7 @@ Generic Repository interface (Крок 1 — лише контракт).
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, Iterable, Optional, TypeVar
+from typing import Generic, Iterable, TypeVar
 
 T = TypeVar("T")  # pragma: no cover
 ID = TypeVar("ID")  # pragma: no cover
@@ -15,7 +15,7 @@ ID = TypeVar("ID")  # pragma: no cover
 
 class IRepository(ABC, Generic[T, ID]):  # pragma: no cover
     @abstractmethod
-    def get_by_id(self, entity_id: ID) -> Optional[T]: ...
+    def get_by_id(self, entity_id: ID) -> T | None: ...
 
     @abstractmethod
     def list(self, **filters) -> Iterable[T]: ...

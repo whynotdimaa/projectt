@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -26,13 +25,13 @@ class InterviewDTO:
     recruiter_id: int
     interviewer_id: int
     scheduled_at: datetime
-    score: Optional[int]
+    score: int | None
     comment: str
     created_at: datetime
-    evaluated_at: Optional[datetime]
+    evaluated_at: datetime | None
 
 
 @dataclass(frozen=True)
 class InterviewFilterDTO:
-    candidate_id: Optional[int] = None
-    interviewer_id: Optional[int] = None
+    candidate_id: int | None = None
+    interviewer_id: int | None = None

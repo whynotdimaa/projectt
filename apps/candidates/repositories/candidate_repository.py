@@ -4,7 +4,7 @@
 """
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 from django.db.models import Q
 
@@ -36,11 +36,11 @@ def _to_dto(obj: Candidate) -> CandidateDTO:
 
 
 class CandidateRepository(ICandidateRepository):
-    def get_by_id(self, candidate_id: int) -> Optional[CandidateDTO]:
+    def get_by_id(self, candidate_id: int) -> CandidateDTO | None:
         obj = Candidate.objects.filter(pk=candidate_id).first()
         return _to_dto(obj) if obj else None
 
-    def get_by_email(self, email: str) -> Optional[CandidateDTO]:
+    def get_by_email(self, email: str) -> CandidateDTO | None:
         obj = Candidate.objects.filter(email__iexact=email).first()
         return _to_dto(obj) if obj else None
 

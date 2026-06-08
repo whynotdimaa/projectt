@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import Iterable
 
 from ..dto import (
     InterviewCreateDTO,
@@ -13,7 +13,7 @@ from ..dto import (
 
 class IInterviewRepository(ABC):
     @abstractmethod
-    def get_by_id(self, interview_id: int) -> Optional[InterviewDTO]: ...
+    def get_by_id(self, interview_id: int) -> InterviewDTO | None: ...
 
     @abstractmethod
     def list(self, filters: InterviewFilterDTO) -> Iterable[InterviewDTO]: ...

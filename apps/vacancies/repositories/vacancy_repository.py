@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 from django.utils import timezone
 
@@ -25,7 +25,7 @@ def _to_dto(o: Vacancy) -> VacancyDTO:
 
 
 class VacancyRepository(IVacancyRepository):
-    def get_by_id(self, vacancy_id: int) -> Optional[VacancyDTO]:
+    def get_by_id(self, vacancy_id: int) -> VacancyDTO | None:
         o = Vacancy.objects.filter(pk=vacancy_id).first()
         return _to_dto(o) if o else None
 

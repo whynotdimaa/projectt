@@ -5,17 +5,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from typing import Iterable
 
 from ..dto import CandidateCreateDTO, CandidateDTO, CandidateFilterDTO, CandidateUpdateDTO
 
 
 class ICandidateRepository(ABC):
     @abstractmethod
-    def get_by_id(self, candidate_id: int) -> Optional[CandidateDTO]: ...
+    def get_by_id(self, candidate_id: int) -> CandidateDTO | None: ...
 
     @abstractmethod
-    def get_by_email(self, email: str) -> Optional[CandidateDTO]: ...
+    def get_by_email(self, email: str) -> CandidateDTO | None: ...
 
     @abstractmethod
     def list(self, filters: CandidateFilterDTO) -> Iterable[CandidateDTO]: ...

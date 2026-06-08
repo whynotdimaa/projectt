@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -22,11 +21,11 @@ class CandidateCreateDTO:
 
 @dataclass(frozen=True)
 class CandidateUpdateDTO:
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone: Optional[str] = None
-    resume_url: Optional[str] = None
-    desired_position: Optional[str] = None
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    resume_url: str | None = None
+    desired_position: str | None = None
 
 
 @dataclass(frozen=True)
@@ -45,5 +44,5 @@ class CandidateDTO:
 
 @dataclass(frozen=True)
 class CandidateFilterDTO:
-    status: Optional[str] = None
-    search: Optional[str] = None  # пошук по імені / email
+    status: str | None = None
+    search: str | None = None  # пошук по імені / email
